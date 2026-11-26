@@ -30,7 +30,7 @@ spec:
     type: Git
     git:
       uri: https://github.com/marpears/fluentd-splunk.git
-      ref: main
+      ref: initial
   strategy:
     type: Docker
     dockerStrategy:

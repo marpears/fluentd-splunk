@@ -1,5 +1,6 @@
 # Fluentd + fluent-plugin-splunk-hec-radiant for redhat-cop/openshift-logforwarding-splunk.
-# Chart contract: args ["fluentd"], config /etc/fluent/fluent.conf, @type splunk_hec.
+# Chart contract: args ["fluentd"], config /etc/fluent/fluent.conf,
+# @type splunk_hec (and alias splunk_hec_radiant) via radiant.
 # Offline: vendor/cache + bundle install --local. Mirror UBI and set UBI_IMAGE if disconnected.
 # OCP 4.22 / RHCOS RHEL 9 → ubi9/ruby-33 (includes build tools; no dnf).
 
@@ -20,9 +21,14 @@ RUN bundle config set --local deployment true && \
     bundle config set --local cache_all true && \
     bundle install --local && \
     bundle binstubs fluentd --force && \
-    # radiant#1: @type splunk_hec expects out_splunk_hec.rb
-    ln -sf out_splunk_hec_radiant.rb \
-      "$(bundle show fluent-plugin-splunk-hec-radiant)/lib/fluent/plugin/out_splunk_hec.rb" && \
+    PLUGIN_DIR="$(bundle show fluent-plugin-splunk-hec-radiant)/lib/fluent/plugin" && \
+    # radiant#1: registers as splunk_hec but file is out_splunk_hec_radiant.rb
+    ln -sf out_splunk_hec_radiant.rb "$PLUGIN_DIR/out_splunk_hec.rb" && \
+    # Also accept @type splunk_hec_radiant (same class; eases migration / radiant docs)
+    grep -q 'register_output("splunk_hec_radiant"' \
+      "$PLUGIN_DIR/out_splunk_hec_radiant.rb" || \
+      sed -i '/register_output("splunk_hec", self)/a\      Fluent::Plugin.register_output("splunk_hec_radiant", self)' \
+        "$PLUGIN_DIR/out_splunk_hec_radiant.rb" && \
     rm -rf vendor/bundle/ruby/*/cache vendor/cache .bundle/cache && \
     find vendor/bundle -name "*.so" -exec strip {} + 2>/dev/null || true
 

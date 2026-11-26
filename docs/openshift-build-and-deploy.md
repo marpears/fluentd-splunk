@@ -20,7 +20,7 @@ Each `oc start-build` creates a **Build** (`fluentd-splunk-N`) and a short-lived
 ## How the build process works
 
 1. **Trigger** — `oc start-build -n openshift-logging fluentd-splunk` (or the console / a webhook). No local tree required.
-2. **Clone** — OpenShift clones `https://github.com/marpears/fluentd-splunk.git` at ref `initial` into the build pod (patch `source.git.uri` for an internal mirror; add a source secret if the repo is private).
+2. **Clone** — OpenShift clones `https://github.com/marpears/fluentd-splunk.git` at ref `main` into the build pod (patch `source.git.uri` for an internal mirror; add a source secret if the repo is private).
 3. **Buildah / Docker strategy** — Runs the repo `Containerfile` with build-arg `UBI_IMAGE` (digest-pinned `ubi9/ruby-33` by default):
    - **Builder stage:** `bundle install --local` from `vendor/cache`, Fluentd binstubs, radiant autoload symlink for `@type splunk_hec`, plus alias registration for `@type splunk_hec_radiant`.
    - **Runtime stage:** copies installed gems, sets OpenShift-friendly ownership, installs `/bin/entrypoint` that runs `fluentd -c /etc/fluent/fluent.conf`.

@@ -1,0 +1,9 @@
+vendor/bundle/
+.bundle/
+.claude/
+.cursor/
+*.swp
+*~
+.DS_Store
+.env
+.env.*

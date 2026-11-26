@@ -1,0 +1,5 @@
+# Overlay for redhat-cop/openshift-logforwarding-splunk (keep scl: false).
+forwarding:
+  fluentd:
+    replicas: 3
+    image: image-registry.openshift-image-registry.svc:5000/openshift-logging/fluentd-splunk:latest

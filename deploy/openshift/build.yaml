@@ -1,0 +1,52 @@
+# ImageStream + BuildConfig for openshift-logging (same ns as the Helm chart).
+# Source is cloned from git on each build — anyone can rebuild without a local tree.
+# Disconnected: mirror the git repo + ubi9/ruby-33; patch source.git.uri and UBI_IMAGE.
+#   oc apply -n openshift-logging -f deploy/openshift/build.yaml
+#   oc start-build -n openshift-logging fluentd-splunk --follow
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: fluentd-splunk
+  labels:
+    app.kubernetes.io/name: fluentd-splunk
+    app.kubernetes.io/component: fluentd
+spec:
+  lookupPolicy:
+    local: false
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: fluentd-splunk
+  labels:
+    app.kubernetes.io/name: fluentd-splunk
+    app.kubernetes.io/component: fluentd
+spec:
+  successfulBuildsHistoryLimit: 3
+  failedBuildsHistoryLimit: 3
+  runPolicy: Serial
+  source:
+    type: Git
+    git:
+      uri: https://github.com/marpears/fluentd-splunk.git
+      ref: initial
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: Containerfile
+      imageOptimizationPolicy: SkipLayers
+      buildArgs:
+        - name: UBI_IMAGE
+          value: registry.access.redhat.com/ubi9/ruby-33@sha256:0d6e8a324725cae9c6df34fd2200f3311c9c872fa478ea657c7aa03a928082db
+  output:
+    to:
+      kind: ImageStreamTag
+      name: fluentd-splunk:latest
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: "2"
+      memory: 4Gi
